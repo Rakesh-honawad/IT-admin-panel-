@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # IT Admin Agent
 
 An AI agent that autonomously operates a web-based IT admin panel
@@ -44,3 +45,6 @@ python demo_tasks/task2_lockdown.py
 ```
 
 ## Slack trigger
+=======
+# IT-admin-panel-
+>>>>>>> 203f7026514fcbcb4340aa6f347781e884a28b42

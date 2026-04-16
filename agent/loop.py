@@ -1,10 +1,9 @@
 import asyncio
 import os
 from dotenv import load_dotenv
-from langchain_anthropic import ChatAnthropic
+from langchain_groq import ChatGroq
 from browser_use import Agent, BrowserConfig, Browser
 from browser_use.agent.views import AgentHistoryList
-
 from agent.logger import AgentLogger
 
 load_dotenv()
@@ -24,30 +23,26 @@ def get_browser() -> Browser:
     )
 
 
-def get_llm() -> ChatAnthropic:
-    return ChatAnthropic(
-        model="claude-sonnet-4-5",
-        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-        timeout=120,
-        stop=None,
+def get_llm() -> ChatGroq:
+    return ChatGroq(
+        model="llama-3.3-70b-versatile",
+        groq_api_key=os.getenv("GROQ_API_KEY"),
+        temperature=0.0,
     )
 
 
 async def run_task(task_prompt: str, task_name: str = "task", max_steps: int = 30) -> dict:
-    """
-    Runs the agent and returns a full report dict.
-    Logs every step + screenshots automatically.
-    """
     logger = AgentLogger(task_name=task_name)
     browser = get_browser()
     llm = get_llm()
 
     agent = Agent(
-        task=task_prompt,
-        llm=llm,
-        browser=browser,
-        max_actions_per_step=5,
-    )
+    task=task_prompt,
+    llm=llm,
+    browser=browser,
+    max_actions_per_step=5,
+    use_vision=False,
+)
 
     success = False
     final_result = ""
@@ -55,20 +50,18 @@ async def run_task(task_prompt: str, task_name: str = "task", max_steps: int = 3
     try:
         history: AgentHistoryList = await agent.run(max_steps=max_steps)
 
-        # Walk through history and log each step
         for i, item in enumerate(history.history):
             action_str = str(item.model_output)[:120] if item.model_output else "—"
             result_str = str(item.result)[:120] if item.result else "—"
             url = item.state.url if item.state else ""
 
-            step = logger.log_step(
+            logger.log_step(
                 step_num=i + 1,
                 action=action_str,
                 result=result_str,
                 url=url,
             )
 
-            # Save screenshot if available
             if item.state and item.state.screenshot:
                 import base64
                 img_bytes = base64.b64decode(item.state.screenshot)
