@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% set active = "licenses" %}
+{% block page_title %}Licenses{% endblock %}
+{% block content %}
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <span class="card-title" style="margin:0;">License Assignments</span>
+    <button class="btn btn-primary" id="btn-assign">+ Assign License</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Product</th>
+        <th>Assigned On</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lic in licenses %}
+      <tr data-license-id="{{ lic.id }}">
+        <td><strong>{{ lic.user_name }}</strong></td>
+        <td>{{ lic.product }}</td>
+        <td>{{ lic.assigned_on }}</td>
+        <td><span class="badge badge-active">Active</span></td>
+        <td><button class="btn btn-danger btn-sm btn-revoke" data-id="{{ lic.id }}">Revoke</button></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" style="text-align:center; color:#aaa; padding:32px;">No licenses assigned.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div id="modal-assign" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:12px; padding:32px; width:400px;">
+    <h2 style="font-size:18px; margin-bottom:20px;">Assign License</h2>
+    <form method="POST" action="/licenses/assign">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">User Email</label>
+        <input name="email" type="email" placeholder="jane.smith@company.com" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;" required />
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Product</label>
+        <select name="product" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;">
+          <option>GitHub Enterprise</option>
+          <option>Slack Pro</option>
+          <option>Figma Org</option>
+          <option>AWS IAM</option>
+          <option>Jira Cloud</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button type="button" class="btn btn-ghost" id="btn-cancel-lic">Cancel</button>
+        <button type="submit" class="btn btn-primary">Assign</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  const m = document.getElementById('modal-assign');
+  document.getElementById('btn-assign').onclick = () => m.style.display = 'flex';
+  document.getElementById('btn-cancel-lic').onclick = () => m.style.display = 'none';
+</script>
+{% endblock %}

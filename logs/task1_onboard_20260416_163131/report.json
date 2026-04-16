@@ -1,0 +1,34 @@
+{
+  "run_id": "task1_onboard_20260416_163131",
+  "task": "task1_onboard",
+  "success": true,
+  "duration_seconds": 8.5,
+  "total_steps": 3,
+  "final_result": "No final result",
+  "steps": [
+    {
+      "step": 1,
+      "timestamp": "2026-04-16T16:31:38.520265",
+      "url": "about:blank",
+      "action": "\u2014",
+      "result": "[ActionResult(is_done=False, success=None, extracted_content=None, error=\"Error code: 400 - {'error': {'message': 'openrouter/meta-llama/llama-3-8b-instruct is not a valid model ID', 'code': 400}, 'us",
+      "screenshot": "logs\\task1_onboard_20260416_163131\\screenshots\\step_01.png"
+    },
+    {
+      "step": 2,
+      "timestamp": "2026-04-16T16:31:39.030139",
+      "url": "about:blank",
+      "action": "\u2014",
+      "result": "[ActionResult(is_done=False, success=None, extracted_content=None, error=\"Error code: 400 - {'error': {'message': 'openrouter/meta-llama/llama-3-8b-instruct is not a valid model ID', 'code': 400}, 'us",
+      "screenshot": "logs\\task1_onboard_20260416_163131\\screenshots\\step_02.png"
+    },
+    {
+      "step": 3,
+      "timestamp": "2026-04-16T16:31:39.545749",
+      "url": "about:blank",
+      "action": "\u2014",
+      "result": "[ActionResult(is_done=False, success=None, extracted_content=None, error=\"Error code: 400 - {'error': {'message': 'openrouter/meta-llama/llama-3-8b-instruct is not a valid model ID', 'code': 400}, 'us",
+      "screenshot": "logs\\task1_onboard_20260416_163131\\screenshots\\step_03.png"
+    }
+  ]
+}

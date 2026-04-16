@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IT Admin Panel</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f6fa; color: #1a1a2e; display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { width: 220px; background: #1a1a2e; color: #fff; display: flex; flex-direction: column; padding: 24px 0; flex-shrink: 0; }
+    .sidebar .logo { font-size: 18px; font-weight: 700; padding: 0 24px 24px; border-bottom: 1px solid #2e2e4e; letter-spacing: 0.5px; }
+    .sidebar nav { margin-top: 16px; display: flex; flex-direction: column; gap: 4px; }
+    .sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 12px 24px; color: #a0a0c0; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; transition: all 0.15s; }
+    .sidebar nav a:hover { background: #2e2e4e; color: #fff; }
+    .sidebar nav a.active { background: #2e2e4e; color: #fff; border-left-color: #6c63ff; }
+    .sidebar nav a .icon { font-size: 16px; }
+
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar { background: #fff; border-bottom: 1px solid #e0e0f0; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .topbar h1 { font-size: 20px; font-weight: 600; }
+    .topbar .badge-env { font-size: 11px; background: #eef; color: #6c63ff; padding: 4px 10px; border-radius: 20px; font-weight: 600; border: 1px solid #d0d0ff; }
+    .content { padding: 32px; flex: 1; overflow-y: auto; }
+
+    /* Cards */
+    .card { background: #fff; border-radius: 10px; border: 1px solid #e0e0f0; padding: 24px; margin-bottom: 24px; }
+    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #1a1a2e; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #888; border-bottom: 2px solid #e0e0f0; }
+    td { padding: 14px; border-bottom: 1px solid #f0f0f8; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafe; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-active   { background: #e6f9f0; color: #0a7a4a; border: 1px solid #b0e8d0; }
+    .badge-inactive { background: #fef3f2; color: #b42318; border: 1px solid #fecdca; }
+    .badge-pending  { background: #fffaeb; color: #b54708; border: 1px solid #fedf89; }
+    .badge-secured  { background: #e6f0ff; color: #1849a9; border: 1px solid #b2ccff; }
+
+    /* Buttons */
+    .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .btn-primary { background: #6c63ff; color: #fff; }
+    .btn-danger  { background: #ef4444; color: #fff; }
+    .btn-ghost   { background: transparent; color: #6c63ff; border: 1px solid #d0d0ff; }
+    .btn:hover { opacity: 0.85; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">⚙ IT Admin</div>
+    <nav>
+      <a href="/users"    class="{% if active == 'users'    %}active{% endif %}"><span class="icon">👥</span> Users</a>
+      <a href="/licenses" class="{% if active == 'licenses' %}active{% endif %}"><span class="icon">🔑</span> Licenses</a>
+      <a href="/security" class="{% if active == 'security' %}active{% endif %}"><span class="icon">🛡</span> Security</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+      <span class="badge-env">localhost:8000</span>
+    </div>
+    <div class="content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</body>
+</html>

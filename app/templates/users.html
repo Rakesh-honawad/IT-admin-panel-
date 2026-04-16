@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% set active = "users" %}
+{% block page_title %}Users{% endblock %}
+{% block content %}
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <span class="card-title" style="margin:0;">All Users</span>
+    <button class="btn btn-primary" id="btn-add-user">+ Add User</button>
+  </div>
+  <table id="users-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr data-user-id="{{ user.id }}">
+        <td><strong>{{ user.name }}</strong></td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.role }}</td>
+        <td>
+          {% if user.status == "active" %}
+            <span class="badge badge-active">Active</span>
+          {% elif user.status == "inactive" %}
+            <span class="badge badge-inactive">Inactive</span>
+          {% else %}
+            <span class="badge badge-pending">Pending</span>
+          {% endif %}
+        </td>
+        <td style="display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm">Edit</button>
+          <button class="btn btn-danger btn-sm btn-disable" data-id="{{ user.id }}">Disable</button>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" style="text-align:center; color:#aaa; padding:32px;">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Add User Modal (shown by agent or button) -->
+<div id="modal-add-user" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:12px; padding:32px; width:400px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+    <h2 style="font-size:18px; margin-bottom:20px;">Add New User</h2>
+    <form id="form-add-user" method="POST" action="/users/create">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Full Name</label>
+        <input name="name" id="input-name" type="text" placeholder="Jane Smith" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;" required />
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Email</label>
+        <input name="email" id="input-email" type="email" placeholder="jane.smith@company.com" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;" required />
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Role</label>
+        <select name="role" id="input-role" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;">
+          <option>Engineer</option>
+          <option>Manager</option>
+          <option>Designer</option>
+          <option>Analyst</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button type="button" class="btn btn-ghost" id="btn-cancel-user">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-submit-user">Create User</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('modal-add-user');
+  document.getElementById('btn-add-user').onclick = () => modal.style.display = 'flex';
+  document.getElementById('btn-cancel-user').onclick = () => modal.style.display = 'none';
+</script>
+{% endblock %}
