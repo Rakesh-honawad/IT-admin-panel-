@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.name }} — IT Admin{% endblock %}
+{% block page_title %}{{ user.name }}{% endblock %}
+{% block page_subtitle %}User detail view{% endblock %}
+
+{% block topbar_actions %}
+  <a href="/users" class="btn btn-ghost">← Back to Users</a>
+{% endblock %}
+
+{% block content %}
+
+<div style="display: grid; grid-template-columns: 340px 1fr; gap: 20px;">
+
+  <!-- Left: User info card -->
+  <div>
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="card-title">Account Info</div>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--accent-dim); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 10px;">
+          {{ user.name[0] }}
+        </div>
+        <div style="font-size: 16px; font-weight: 700;">{{ user.name }}</div>
+        <div style="font-size: 12px; color: var(--text3); margin-top: 2px;">{{ user.role }}</div>
+        <div style="margin-top: 8px;">
+          {% if user.status == 'active' %}
+          <span class="badge badge-active" id="status-badge">● ACTIVE</span>
+          {% else %}
+          <span class="badge badge-disabled" id="status-badge">● DISABLED</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-key">Email</span>
+        <span class="detail-val" style="font-size: 12px; font-family: var(--font)">{{ user.email }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">Department</span>
+        <span class="detail-val">{{ user.department }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">MFA Status</span>
+        <span class="detail-val" id="mfa-badge">
+          {% if user.mfa_enabled %}
+          <span class="badge badge-mfa-on">MFA ON</span>
+          {% else %}
+          <span class="badge badge-mfa-off">MFA OFF</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">Active Sessions</span>
+        <span class="detail-val" id="session-count" style="font-family: var(--font)">{{ user.sessions }}</span>
+      </div>
+    </div>
+
+    <!-- Licenses -->
+    <div class="card">
+      <div class="card-title">Assigned Licenses</div>
+      {% if licenses %}
+        {% for lic in licenses %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+          <span class="badge badge-license">{{ lic.product }}</span>
+          <span style="font-size: 11px; color: var(--text3); font-family: var(--font)">{{ lic.assigned_on }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="color: var(--text3); font-size: 13px; padding: 8px 0;">No licenses assigned</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right: Actions -->
+  <div>
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="card-title">Account Actions</div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+
+        {% if user.status == 'active' %}
+        <form method="post" action="/users/{{ user.id }}/disable">
+          <button type="submit" class="btn btn-danger" style="width: 100%;" onclick="return confirm('Disable this user account?')">
+             Disable User Account
+          </button>
+        </form>
+        {% else %}
+        <form method="post" action="/users/{{ user.id }}/enable">
+          <button type="submit" class="btn btn-success" style="width: 100%;">
+             Enable User Account
+          </button>
+        </form>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="card-title">Security Actions</div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+
+        <form method="post" action="/security/revoke-sessions/{{ user.id }}">
+          <button type="submit" class="btn btn-warning" style="width: 100%;" onclick="return confirm('Revoke all active sessions for {{ user.name }}?')">
+             Revoke All Active Sessions
+          </button>
+        </form>
+
+        <form method="post" action="/security/reset-mfa/{{ user.id }}">
+          <button type="submit" class="btn btn-warning" style="width: 100%;" onclick="return confirm('Reset MFA for {{ user.name }}? They will need to re-enroll.')">
+             Reset MFA
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Assign License</div>
+      <form method="post" action="/licenses/assign">
+        <input type="hidden" name="user_id" value="{{ user.id }}">
+        <div class="form-group">
+          <label class="form-label">Product</label>
+          <select name="product" class="form-control" style="width: 100%;">
+            <option value="GitHub Enterprise">GitHub Enterprise</option>
+            <option value="Microsoft 365">Microsoft 365</option>
+            <option value="Slack Pro">Slack Pro</option>
+            <option value="Zoom Business">Zoom Business</option>
+            <option value="Figma Professional">Figma Professional</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Assign License</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

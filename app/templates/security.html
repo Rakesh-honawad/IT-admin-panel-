@@ -1,59 +1,99 @@
 {% extends "base.html" %}
 {% set active = "security" %}
 {% block page_title %}Security{% endblock %}
+{% block page_sub %}{{ users|length }} records{% endblock %}
 {% block content %}
+
+{% if msg %}
+<div class="flash {{ msg_type }}">{{ msg }}</div>
+{% endif %}
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Active sessions</div>
+    <div class="stat-value">{{ users|sum(attribute="sessions_active") }}</div>
+    <div class="stat-accent"></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">MFA disabled</div>
+    <div class="stat-value">{{ users|selectattr("mfa_enabled","eq",false)|list|length }}</div>
+    <div class="stat-sub">needs attention</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">At risk</div>
+    <div class="stat-value">{{ users|selectattr("sessions_active","gt",1)|list|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Secured</div>
+    <div class="stat-value">{{ users|selectattr("sessions_active","eq",0)|selectattr("mfa_enabled","eq",true)|list|length }}</div>
+  </div>
+</div>
+
 <div class="card">
-  <span class="card-title">Security Controls</span>
+  <div class="card-header">
+    <div class="card-title">Security controls</div>
+  </div>
   <table>
     <thead>
-      <tr>
-        <th>User</th>
-        <th>Active Sessions</th>
-        <th>MFA</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
+      <tr><th>User</th><th>Sessions</th><th>MFA</th><th>Status</th><th>Actions</th></tr>
     </thead>
     <tbody>
-      {% for s in security_records %}
-      <tr data-user-id="{{ s.user_id }}">
-        <td><strong>{{ s.name }}</strong></td>
-        <td>{{ s.sessions }}</td>
-        <td>
-          {% if s.mfa_enabled %}
-            <span class="badge badge-secured">Enabled</span>
-          {% else %}
-            <span class="badge badge-inactive">Disabled</span>
-          {% endif %}
-        </td>
-        <td>
-          {% if s.status == "secured" %}
-            <span class="badge badge-secured" id="status-{{ s.user_id }}">Secured</span>
-          {% else %}
-            <span class="badge badge-pending" id="status-{{ s.user_id }}">Needs Review</span>
-          {% endif %}
-        </td>
-        <td style="display:flex; gap:8px;">
-          <form method="POST" action="/security/revoke-sessions/{{ s.user_id }}" style="display:inline;">
-            <button type="submit" class="btn btn-danger btn-sm">Revoke Sessions</button>
+    {% for user in security_records %}
+    {% set ava_classes = ['ava-a','ava-b','ava-c','ava-d'] %}
+    {% set initials = (user.name.split()[0][0] + (user.name.split()[1][0] if user.name.split()|length > 1 else ''))|upper %}
+    <tr id="security-row-{{ user.id }}">
+      <td>
+        <div class="user-cell">
+          <div class="user-ava {{ ava_classes[loop.index0 % 4] }}">{{ initials }}</div>
+          <div>
+            <div class="user-name">{{ user.name }}</div>
+            <div class="user-email">{{ user.email }}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        {% if user.sessions > 0 %}
+          <span class="badge badge-pending">{{ user.sessions }} active</span>
+        {% else %}
+          <span style="color:var(--ink-hint);font-size:12px;">None</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if user.mfa_enabled %}
+          <span class="badge badge-active">Enabled</span>
+        {% else %}
+          <span class="badge badge-inactive">Disabled</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if user.status == "Disabled" %}
+          <span class="badge badge-inactive" id="status-{{ user.id }}">Disabled</span>
+        {% elif user.sessions == 0 and user.mfa_enabled %}
+          <span class="badge badge-secured" id="status-{{ user.id }}">✓ Secured</span>
+        {% elif not user.mfa_enabled or user.sessions > 1 %}
+          <span class="badge badge-inactive" id="status-{{ user.id }}">Needs review</span>
+        {% else %}
+          <span class="badge badge-pending" id="status-{{ user.id }}">Normal</span>
+        {% endif %}
+      </td>
+      <td>
+        <div class="action-row">
+          {% if user.sessions > 0 %}
+          <form method="post" action="/security/revoke-sessions/{{ user.user_id }}" style="display:inline"
+                onsubmit="return confirm('Revoke all sessions for {{ user.name }}?')">
+            <button type="submit" class="btn btn-danger btn-sm" id="revoke-btn-{{ user.id }}">Revoke sessions</button>
           </form>
-          <form method="POST" action="/security/reset-mfa/{{ s.user_id }}" style="display:inline;">
-            <button type="submit" class="btn btn-ghost btn-sm">Reset MFA</button>
+          {% endif %}
+          <form method="post" action="/security/reset-mfa/{{ user.user_id }}" style="display:inline">
+            <button type="submit" class="btn btn-ghost btn-sm" id="mfa-btn-{{ user.id }}">Reset MFA</button>
           </form>
-        </td>
-      </tr>
-      {% else %}
-      <tr><td colspan="5" style="text-align:center; color:#aaa; padding:32px;">No records found.</td></tr>
-      {% endfor %}
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
     </tbody>
   </table>
 </div>
 
-<!-- Success banner (shown after agent action) -->
-{% if success_message %}
-<div id="success-banner" style="position:fixed; bottom:24px; right:24px; background:#0a7a4a; color:#fff; padding:14px 22px; border-radius:8px; font-weight:600; font-size:14px; box-shadow:0 4px 16px rgba(0,0,0,0.2);">
-  ✓ {{ success_message }}
-</div>
-<script>setTimeout(() => document.getElementById('success-banner').remove(), 4000);</script>
-{% endif %}
 {% endblock %}

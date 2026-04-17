@@ -1,82 +1,131 @@
 {% extends "base.html" %}
 {% set active = "users" %}
 {% block page_title %}Users{% endblock %}
+{% block page_sub %}{{ users|length }} members{% endblock %}
 {% block content %}
-<div class="card">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-    <span class="card-title" style="margin:0;">All Users</span>
-    <button class="btn btn-primary" id="btn-add-user">+ Add User</button>
+
+{% if msg %}
+<div class="flash {{ msg_type }}">{{ msg }}</div>
+{% endif %}
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Total users</div>
+    <div class="stat-value">{{ users|length }}</div>
+    <div class="stat-accent"></div>
   </div>
+  <div class="stat-card">
+    <div class="stat-label">Active</div>
+    <div class="stat-value">{{ users|selectattr("status","eq","active")|list|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Inactive</div>
+    <div class="stat-value">{{ users|selectattr("status","eq","inactive")|list|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total licenses</div>
+    <div class="stat-value">{{ user_licenses.values() | map('length') | sum }}</div>
+  </div>
+</div>
+
+<!-- Users card -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title">All users</div>
+      <div class="card-meta">Manage team access and roles</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <!-- Search -->
+      <form method="get" action="/users" style="display:flex;gap:6px;">
+        <input type="text" name="q" value="{{ q or '' }}" placeholder="Search…"
+               style="padding:6px 10px;border:1px solid var(--border-md);border-radius:6px;font-size:12px;font-family:inherit;outline:none;width:180px;">
+        <button type="submit" class="btn btn-ghost btn-sm">Search</button>
+        {% if q %}<a href="/users" class="btn btn-ghost btn-sm">Clear</a>{% endif %}
+      </form>
+      <button class="btn btn-primary" onclick="document.getElementById('modal-user').classList.add('open')">+ Add user</button>
+    </div>
+  </div>
+
   <table id="users-table">
     <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
+      <tr><th>User</th><th>Role</th><th>Status</th><th>Licenses</th><th>Actions</th></tr>
     </thead>
     <tbody>
-      {% for user in users %}
-      <tr data-user-id="{{ user.id }}">
-        <td><strong>{{ user.name }}</strong></td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.role }}</td>
-        <td>
+    {% for user in users %}
+    {% set ava_classes = ['ava-a','ava-b','ava-c','ava-d'] %}
+    {% set initials = (user.name.split()[0][0] + (user.name.split()[1][0] if user.name.split()|length > 1 else ''))|upper %}
+    <tr>
+      <td>
+        <div class="user-cell">
+          <div class="user-ava {{ ava_classes[loop.index0 % 4] }}">{{ initials }}</div>
+          <div>
+            <div class="user-name">{{ user.name }}</div>
+            <div class="user-email">{{ user.email }}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="badge badge-role">{{ user.role }}</span></td>
+      <td>
+        {% if user.status == "active" %}
+          <span class="badge badge-active">Active</span>
+        {% else %}
+          <span class="badge badge-inactive">Inactive</span>
+        {% endif %}
+      </td>
+      <td>
+        {% for lic in user_licenses.get(user.id, []) %}
+          <span class="badge badge-license">{{ lic }}</span>
+        {% else %}
+          <span style="color:var(--ink-hint);font-size:11px;">None</span>
+        {% endfor %}
+      </td>
+      <td>
+        <div class="action-row">
           {% if user.status == "active" %}
-            <span class="badge badge-active">Active</span>
-          {% elif user.status == "inactive" %}
-            <span class="badge badge-inactive">Inactive</span>
+            <form method="post" action="/users/{{ user.id }}/disable" style="display:inline"
+                  onsubmit="return confirm('Disable {{ user.name }}?')">
+              <button type="submit" class="btn btn-danger btn-sm">Disable</button>
+            </form>
           {% else %}
-            <span class="badge badge-pending">Pending</span>
+            <form method="post" action="/users/{{ user.id }}/enable" style="display:inline">
+              <button type="submit" class="btn btn-ghost btn-sm">Enable</button>
+            </form>
           {% endif %}
-        </td>
-        <td style="display:flex; gap:8px;">
-          <button class="btn btn-ghost btn-sm">Edit</button>
-          <button class="btn btn-danger btn-sm btn-disable" data-id="{{ user.id }}">Disable</button>
-        </td>
-      </tr>
-      {% else %}
-      <tr><td colspan="5" style="text-align:center; color:#aaa; padding:32px;">No users found.</td></tr>
-      {% endfor %}
+        </div>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="text-align:center;color:var(--ink-hint);padding:32px;">No users found.</td></tr>
+    {% endfor %}
     </tbody>
   </table>
 </div>
 
-<!-- Add User Modal (shown by agent or button) -->
-<div id="modal-add-user" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:12px; padding:32px; width:400px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
-    <h2 style="font-size:18px; margin-bottom:20px;">Add New User</h2>
-    <form id="form-add-user" method="POST" action="/users/create">
-      <div style="margin-bottom:14px;">
-        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Full Name</label>
-        <input name="name" id="input-name" type="text" placeholder="Jane Smith" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;" required />
+<!-- Add User Modal -->
+<div id="modal-user" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add new user</span>
+      <button class="modal-close" onclick="document.getElementById('modal-user').classList.remove('open')">✕</button>
+    </div>
+    <form method="post" action="/users/create">
+      <div class="modal-body">
+        <div class="field"><label>Full name</label><input type="text" name="name" id="input-name" placeholder="Jane Smith" required></div>
+        <div class="field"><label>Email address</label><input type="email" name="email" id="input-email" placeholder="jane.smith@company.com" required></div>
+        <div class="field"><label>Role</label>
+          <select name="role" id="input-role">
+            <option>Engineer</option><option>Manager</option><option>Designer</option><option>Analyst</option><option>SRE</option>
+          </select>
+        </div>
       </div>
-      <div style="margin-bottom:14px;">
-        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Email</label>
-        <input name="email" id="input-email" type="email" placeholder="jane.smith@company.com" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;" required />
-      </div>
-      <div style="margin-bottom:20px;">
-        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Role</label>
-        <select name="role" id="input-role" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;">
-          <option>Engineer</option>
-          <option>Manager</option>
-          <option>Designer</option>
-          <option>Analyst</option>
-        </select>
-      </div>
-      <div style="display:flex; gap:10px; justify-content:flex-end;">
-        <button type="button" class="btn btn-ghost" id="btn-cancel-user">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="btn-submit-user">Create User</button>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('modal-user').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-submit-user">Create user</button>
       </div>
     </form>
   </div>
 </div>
 
-<script>
-  const modal = document.getElementById('modal-add-user');
-  document.getElementById('btn-add-user').onclick = () => modal.style.display = 'flex';
-  document.getElementById('btn-cancel-user').onclick = () => modal.style.display = 'none';
-</script>
 {% endblock %}

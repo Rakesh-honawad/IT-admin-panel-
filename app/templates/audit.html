@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% set active = "audit" %}
+{% block page_title %}Audit Log{% endblock %}
+{% block page_sub %}{{ logs|length }} entries{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title">All actions</div>
+      <div class="card-meta">Newest first · performed by IT Admin Agent</div>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Time</th><th>Action</th><th>Target</th><th>By</th><th>Details</th></tr>
+    </thead>
+    <tbody>
+    {% for log in logs %}
+    <tr>
+      <td style="font-size:12px;color:var(--ink-hint);white-space:nowrap;">{{ log.timestamp }}</td>
+      <td><strong style="font-size:13px;">{{ log.action }}</strong></td>
+      <td style="font-size:13px;">{{ log.target }}</td>
+      <td><span class="badge badge-role">{{ log.performed_by }}</span></td>
+      <td style="color:var(--ink-hint);font-size:12px;">{{ log.details }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="text-align:center;color:var(--ink-hint);padding:32px;">No audit logs yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

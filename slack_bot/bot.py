@@ -68,7 +68,7 @@ def run_agent_in_thread(task_prompt: str, task_name: str, say, channel: str):
             report = loop.run_until_complete(
                 run_task(task_prompt, task_name=task_name, max_steps=30)
             )
-            status = "✅ Success" if report["success"] else "❌ Failed"
+            status = " Success" if report["success"] else " Failed"
             msg = (
                 f"{status} — *{task_name}*\n"
                 f"Steps: {report['total_steps']} | "
@@ -77,7 +77,7 @@ def run_agent_in_thread(task_prompt: str, task_name: str, say, channel: str):
             )
             say(text=msg, channel=channel)
         except Exception as e:
-            say(text=f"❌ Agent error: {e}", channel=channel)
+            say(text=f" Agent error: {e}", channel=channel)
         finally:
             loop.close()
 
@@ -116,7 +116,7 @@ def handle_ittask(ack, say, command):
 
     if not parsed:
         say(
-            text=f"❓ Couldn't parse `{text}`. Try `/ittask help`.",
+            text=f" Couldn't parse `{text}`. Try `/ittask help`.",
             channel=channel,
         )
         return
@@ -124,7 +124,7 @@ def handle_ittask(ack, say, command):
     if parsed["type"] == "onboard":
         say(
             text=(
-                f"🤖 Agent starting... triggered by @{user}\n"
+                f" Agent starting... triggered by @{user}\n"
                 f"Task: Onboard *{parsed['name']}* (`{parsed['email']}`)"
             ),
             channel=channel,
@@ -139,7 +139,7 @@ def handle_ittask(ack, say, command):
     elif parsed["type"] == "lockdown":
         say(
             text=(
-                f"🤖 Agent starting... triggered by @{user}\n"
+                f" Agent starting... triggered by @{user}\n"
                 f"Task: Security lockdown for *{parsed['name']}*"
             ),
             channel=channel,

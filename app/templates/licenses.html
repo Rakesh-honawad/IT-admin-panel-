@@ -1,66 +1,145 @@
 {% extends "base.html" %}
 {% set active = "licenses" %}
+
 {% block page_title %}Licenses{% endblock %}
+{% block page_sub %}{{ all_licenses|length }} assignments{% endblock %}
+
 {% block content %}
-<div class="card">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-    <span class="card-title" style="margin:0;">License Assignments</span>
-    <button class="btn btn-primary" id="btn-assign">+ Assign License</button>
+
+{% if msg %}
+<div class="flash {{ msg_type }}">{{ msg }}</div>
+{% endif %}
+
+<!-- Stats -->
+<div class="stats-row">
+  {% for product, count in summary.items() %}
+  <div class="stat-card">
+    <div class="stat-label">{{ product }}</div>
+    <div class="stat-value">{{ count }}</div>
+    <div class="stat-sub">assigned</div>
+    {% if loop.first %}<div class="stat-accent"></div>{% endif %}
   </div>
+  {% endfor %}
+</div>
+
+<!-- Assignments -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title">License assignments</div>
+      <div class="card-meta">{{ all_licenses|length }} active assignments</div>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('modal-lic').classList.add('open')">
+      + Assign license
+    </button>
+  </div>
+
   <table>
     <thead>
       <tr>
         <th>User</th>
         <th>Product</th>
-        <th>Assigned On</th>
+        <th>Assigned</th>
         <th>Status</th>
         <th>Actions</th>
       </tr>
     </thead>
+
     <tbody>
-      {% for lic in licenses %}
-      <tr data-license-id="{{ lic.id }}">
-        <td><strong>{{ lic.user_name }}</strong></td>
-        <td>{{ lic.product }}</td>
-        <td>{{ lic.assigned_on }}</td>
-        <td><span class="badge badge-active">Active</span></td>
-        <td><button class="btn btn-danger btn-sm btn-revoke" data-id="{{ lic.id }}">Revoke</button></td>
-      </tr>
-      {% else %}
-      <tr><td colspan="5" style="text-align:center; color:#aaa; padding:32px;">No licenses assigned.</td></tr>
-      {% endfor %}
+    {% for lic in all_licenses %}
+    {% set u = user_map.get(lic.user_id) %}
+    {% if u %}
+    {% set ava_classes = ['ava-a','ava-b','ava-c','ava-d'] %}
+    {% set initials = (u.name.split()[0][0] + (u.name.split()[1][0] if u.name.split()|length > 1 else ''))|upper %}
+
+    <tr>
+      <td>
+        <div class="user-cell">
+          <div class="user-ava {{ ava_classes[loop.index0 % 4] }}">{{ initials }}</div>
+          <div>
+            <div class="user-name">{{ u.name }}</div>
+            <div class="user-email">{{ u.email }}</div>
+          </div>
+        </div>
+      </td>
+
+      <td>
+        <span class="badge badge-license">{{ lic.product }}</span>
+      </td>
+
+      <td style="color:var(--ink-hint);font-size:12px;">
+        {{ lic.assigned_at or "—" }}
+      </td>
+
+      <td>
+        <span class="badge badge-active">Active</span>
+      </td>
+
+      <td>
+        <form method="post" action="/licenses/{{ lic.id }}/revoke" style="display:inline"
+              onsubmit="return confirm('Revoke {{ lic.product }} from {{ u.name }}?')">
+          <button type="submit" class="btn btn-danger btn-sm">Revoke</button>
+        </form>
+      </td>
+    </tr>
+
+    {% endif %}
+    {% else %}
+    <tr>
+      <td colspan="5" style="text-align:center;color:var(--ink-hint);padding:32px;">
+        No licenses assigned.
+      </td>
+    </tr>
+    {% endfor %}
     </tbody>
   </table>
 </div>
 
-<div id="modal-assign" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:12px; padding:32px; width:400px;">
-    <h2 style="font-size:18px; margin-bottom:20px;">Assign License</h2>
-    <form method="POST" action="/licenses/assign">
-      <div style="margin-bottom:14px;">
-        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">User Email</label>
-        <input name="email" type="email" placeholder="jane.smith@company.com" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;" required />
+<!-- Assign License Modal -->
+<div id="modal-lic" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Assign license</span>
+      <button class="modal-close"
+              onclick="document.getElementById('modal-lic').classList.remove('open')">✕</button>
+    </div>
+
+    <form method="post" action="/licenses/assign">
+      <div class="modal-body">
+
+        <div class="field">
+          <label>User</label>
+          <select name="user_id" required>
+            <option value="">— Select user —</option>
+            {% for u in users %}
+              <option value="{{ u.id }}">{{ u.name }} · {{ u.email }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Product</label>
+          <select name="product" required>
+            {% for p in products %}
+              <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
       </div>
-      <div style="margin-bottom:20px;">
-        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Product</label>
-        <select name="product" style="width:100%; padding:10px 12px; border:1px solid #d0d0e0; border-radius:6px; font-size:14px;">
-          <option>GitHub Enterprise</option>
-          <option>Slack Pro</option>
-          <option>Figma Org</option>
-          <option>AWS IAM</option>
-          <option>Jira Cloud</option>
-        </select>
-      </div>
-      <div style="display:flex; gap:10px; justify-content:flex-end;">
-        <button type="button" class="btn btn-ghost" id="btn-cancel-lic">Cancel</button>
-        <button type="submit" class="btn btn-primary">Assign</button>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost"
+                onclick="document.getElementById('modal-lic').classList.remove('open')">
+          Cancel
+        </button>
+
+        <button type="submit" class="btn btn-primary" id="assign-license-btn">
+          Assign
+        </button>
       </div>
     </form>
   </div>
 </div>
-<script>
-  const m = document.getElementById('modal-assign');
-  document.getElementById('btn-assign').onclick = () => m.style.display = 'flex';
-  document.getElementById('btn-cancel-lic').onclick = () => m.style.display = 'none';
-</script>
+
 {% endblock %}
