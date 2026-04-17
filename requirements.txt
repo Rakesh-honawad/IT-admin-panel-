@@ -11,3 +11,7 @@ slack-bolt==1.18.1
 slack-sdk==3.27.1
 playwright>=1.44.0
 langchain-google-genai
+langchain-groq
+groq
+python-multipart==0.0.9
+aiofiles==23.2.1
