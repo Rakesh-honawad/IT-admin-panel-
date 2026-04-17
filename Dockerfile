@@ -12,21 +12,22 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Chromium via Playwright
+# Install Playwright browser
 RUN playwright install chromium
 RUN playwright install-deps chromium
 
+# Copy project
 COPY . .
 
-# Create data and logs dirs
+# Create runtime folders
 RUN mkdir -p data logs
 
-# Seed the database on build
-RUN python -m app.seed
-
+# Expose port (optional)
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# IMPORTANT: use Railway dynamic port
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
