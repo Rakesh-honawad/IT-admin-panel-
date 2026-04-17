@@ -1,7 +1,6 @@
 import os
 
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
-
+BASE_URL = os.getenv("BASE_URL")
 
 def task_onboard_user(name: str, email: str, role: str = "Engineer", product: str = "GitHub Enterprise") -> str:
     return f"""

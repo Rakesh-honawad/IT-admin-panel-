@@ -8,8 +8,7 @@ from agent.logger import AgentLogger
 
 load_dotenv()
 
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
-
+BASE_URL = os.getenv("BASE_URL")
 
 def get_browser() -> Browser:
     return Browser(

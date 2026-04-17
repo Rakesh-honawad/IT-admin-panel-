@@ -1,4 +1,5 @@
-ALLOWED_ORIGINS = ["localhost:8000"]
+import os
+ALLOWED_ORIGINS = [os.getenv("BASE_URL", "")]
 MAX_STEPS = 30
 CONFIRM_ACTIONS = ["disable", "delete", "revoke"]
 TASK_TIMEOUT_SECONDS = 120
