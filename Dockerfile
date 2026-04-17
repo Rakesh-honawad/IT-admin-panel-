@@ -29,5 +29,7 @@ RUN mkdir -p data logs
 # Expose port (optional)
 EXPOSE 8000
 
+RUN python -c "from app.main import app; print('app import OK')"
+
 # IMPORTANT: use Railway dynamic port
-CMD ["sh", "-c", "python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080} 2>&1"]

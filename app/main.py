@@ -1,3 +1,6 @@
+import sys
+print(f"Python {sys.version}", flush=True)
+print("Starting app.main import...", flush=True)
 from fastapi import FastAPI, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -9,6 +12,9 @@ from collections import defaultdict
 from app.models import AuditLog
 from app.database import create_db, get_session
 from app.models import User, License, SecurityRecord
+# These will crash if packages aren't in requirements.txt
+from app.database import create_db, get_session   # needs sqlmodel
+from app.models import User, License, SecurityRecord  # needs sqlmodel
 
 app = FastAPI(title="IT Admin Agent")
 BASE_DIR = Path(__file__).parent
